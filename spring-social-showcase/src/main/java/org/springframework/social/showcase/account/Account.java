@@ -15,16 +15,35 @@
  */
 package org.springframework.social.showcase.account;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+
+import org.hibernate.annotations.GenericGenerator;
+
+@Entity
 public class Account {
 
-	private final String username;
+	private int id; 
+	
+	private String username;
 
-	private final String password;
+	private String password;
 
-	private final String firstName;
+	private String firstName;
 
-	private final String lastName;
+	private String lastName;
+	
+	private User user;
 
+	public Account() {
+		super();
+	}
 	public Account(String username, String password, String firstName, String lastName) {
 		this.username = username;
 		this.password = password;
@@ -32,19 +51,55 @@ public class Account {
 		this.lastName = lastName;
 	}
 
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO, generator="native")
+	@GenericGenerator(name = "native", strategy = "native")
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	@Column(unique = true, nullable = false, name="username")
 	public String getUsername() {
 		return username;
 	}
-
+	public void setUsername(String username) {
+		this.username = username;
+	}	
+	
+	@Column(nullable = false)
 	public String getPassword() {
 		return password;
 	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
+	@Column(nullable = true, name="first_name")
 	public String getFirstName() {
 		return firstName;
 	}
-
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+	
+	@Column(nullable = true, name="last_name")
 	public String getLastName() {
 		return lastName;
 	}
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+	
+	@OneToOne(fetch=FetchType.LAZY, optional=false)
+	@JoinColumn(nullable=false, name="user_id")
+	public User getUser() {
+		return user;
+	}
+	public void setUser(User user) {
+		this.user = user;
+	}
+
 }

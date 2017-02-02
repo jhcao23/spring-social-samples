@@ -47,3 +47,21 @@ Step 4: Participate in the Spring Social community
 Discuss Spring Social on StackOverflow at http://stackoverflow.com/questions/tagged/spring-social. We welcome you to ask questions and we encourage you to answer any you might have insight into.
 
 If you run into any problems or have a suggested new feature, let us know at https://jira.spring.io/browse/SOCIAL. Or better yet, fork Spring Social on GitHub and send us a pull request to fix a bug or introduce a new feature.
+
+## Create DB
+`CREATE DATABASE spring_social_test;`
+
+## Create User in DB
+`DROP USER 'spring'@'localhost';`
+
+`DROP USER 'spring'@'%';`
+
+`CREATE USER 'spring'@'localhost' IDENTIFIED BY 'spring';`
+
+`GRANT ALL ON spring_social_test.* TO 'spring'@'localhost';`
+
+`CREATE USER 'spring'@'%' IDENTIFIED BY 'spring';`
+
+`GRANT ALL ON spring_social_test.* TO 'spring'@'%';`
+
+`commit;`

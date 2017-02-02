@@ -18,16 +18,17 @@ package org.springframework.social.showcase.signup;
 import javax.inject.Inject;
 import javax.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.social.connect.Connection;
 import org.springframework.social.connect.ConnectionFactoryLocator;
 import org.springframework.social.connect.UsersConnectionRepository;
 import org.springframework.social.connect.web.ProviderSignInUtils;
-import org.springframework.social.showcase.account.Account;
-import org.springframework.social.showcase.account.AccountRepository;
-import org.springframework.social.showcase.account.UsernameAlreadyInUseException;
+import org.springframework.social.showcase.account.User;
+import org.springframework.social.showcase.account.UserRepository;
 import org.springframework.social.showcase.message.Message;
 import org.springframework.social.showcase.message.MessageType;
-import org.springframework.social.showcase.signin.SignInUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
@@ -38,14 +39,14 @@ import org.springframework.web.context.request.WebRequest;
 @Controller
 public class SignupController {
 
-	private final AccountRepository accountRepository;
-	private final ProviderSignInUtils providerSignInUtils;
+	@Autowired
+	private UserRepository userRepository;
+	private ProviderSignInUtils providerSignInUtils;
 
 	@Inject
-	public SignupController(AccountRepository accountRepository, 
+	public SignupController(
 		                    ConnectionFactoryLocator connectionFactoryLocator,
 		                    UsersConnectionRepository connectionRepository) {
-		this.accountRepository = accountRepository;
 		this.providerSignInUtils = new ProviderSignInUtils(connectionFactoryLocator, connectionRepository);
 	}
 
@@ -65,10 +66,12 @@ public class SignupController {
 		if (formBinding.hasErrors()) {
 			return null;
 		}
-		Account account = createAccount(form, formBinding);
-		if (account != null) {
-			SignInUtils.signin(account.getUsername());
-			providerSignInUtils.doPostSignUp(account.getUsername(), request);
+		User user = createUser(form, formBinding);
+		if (user != null) {
+			SecurityContextHolder.getContext().setAuthentication(
+				new UsernamePasswordAuthenticationToken(user.getHashId(), null, null)
+			);
+			providerSignInUtils.doPostSignUp(user.getHashId(), request);
 			return "redirect:/";
 		}
 		return null;
@@ -76,12 +79,13 @@ public class SignupController {
 
 	// internal helpers
 	
-	private Account createAccount(SignupForm form, BindingResult formBinding) {
+	private User createUser(SignupForm form, BindingResult formBinding) {
 		try {
-			Account account = new Account(form.getUsername(), form.getPassword(), form.getFirstName(), form.getLastName());
-			accountRepository.createAccount(account);
-			return account;
-		} catch (UsernameAlreadyInUseException e) {
+			User user = new User();
+			user.assembleUser(form.getUsername(), form.getPassword(), form.getFirstName(), form.getLastName());			
+			return userRepository.save(user);			
+		} catch (Exception e) {
+			e.printStackTrace();
 			formBinding.rejectValue("username", "user.duplicateUsername", "already in use");
 			return null;
 		}
